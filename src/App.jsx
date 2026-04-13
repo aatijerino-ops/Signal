@@ -89,7 +89,6 @@ const TRANSITIONS = [
 
 const CLOSING = "You've just done something most people never do — looked at your strengths from four distinct angles, each one revealing something the others can't. What you've shared across these four lenses contains a pattern. A thread that connects the effortless, the in-demand, the self-initiated, and the invisible. Signal is going to name that pattern now. It may confirm something you already sensed. It may surface something you've never quite articulated. Either way, it's yours.";
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
 function parseSynthesis(text) {
   const nameMatch = text.match(/PATTERN NAME:\s*\n([^\n]+)/i);
@@ -142,18 +141,18 @@ export default function Signal() {
     setScreen("loading");
     const userInput = LENSES.map((l, i) => `${l.name}:\n${answers[i] || "(no response)"}`).join("\n\n");
     try {
-      const sr = await fetch("https://api.anthropic.com/v1/messages", {
+      const sr = await fetch("/api/claude", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: SYNTHESIS_SYSTEM, messages: [{ role: "user", content: userInput }] })
       });
       const sd = await sr.json();
       const { name, statement, evidence } = parseSynthesis(sd.content[0].text);
       setPatternName(name); setPatternStatement(statement); setPatternEvidence(evidence);
 
-      const sugR = await fetch("https://api.anthropic.com/v1/messages", {
+      const sugR = await fetch("/api/claude", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 400, system: SUGGESTIONS_SYSTEM, messages: [{ role: "user", content: `Pattern name: ${name}\n\nPattern statement: ${statement}` }] })
       });
       const sugD = await sugR.json();
